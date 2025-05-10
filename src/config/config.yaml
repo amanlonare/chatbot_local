@@ -1,0 +1,13 @@
+database:
+  chat_history_path: ./chat_sessions/chat_sessions.db
+
+ollama:
+  embedding_model: "nomic-embed-text"
+  base_url: http://localhost:11434
+
+chromadb:
+  chromadb_path: "chroma_db"
+  collection_name: "pdfs"
+
+chat_config:
+  chat_memory_length: 2

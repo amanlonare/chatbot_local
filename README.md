@@ -50,6 +50,17 @@ ollama serve
 ollama pull gemma:2b
 ```
 
+for images, pull the model (or any vision model)
+```bash
+ollama run llava
+```
+
+for embedding, pull the model (or any other as per your preference)
+config.yaml has defined nomic-embed-text as embedding model
+```bash
+ollama pull nomic-embed-text
+```
+
 3. Start the Streamlit application:
 ```bash
 streamlit run src/app.py
@@ -93,18 +104,6 @@ Clean build files:
 ```bash
 make clean
 ```
-
-## License
-
-MIT License
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
 
 ## Acknowledgments
 

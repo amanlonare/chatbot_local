@@ -54,15 +54,6 @@ def get_db_connection_and_cursor():
     return conn, conn.cursor()
 
 
-# def get_db_connection():
-#     return st.session_state.db_conn
-
-
-# def get_db_connection_and_cursor():
-#     conn = get_db_connection()
-#     return conn, conn.cursor()
-
-
 def get_all_chat_history_ids():
 
     _, cursor = get_db_connection_and_cursor()
@@ -117,8 +108,7 @@ def load_last_k_text_messages_ollama(chat_history_id, k):
     messages = cursor.fetchall()
     chat_history = []
     for message in reversed(messages):
-        (message_id, sender_type, message_type,
-         text_content, blob_content) = message
+        (_, sender_type, _, text_content, _) = message
         chat_history.append({
             'role': sender_type,
             'content': text_content
@@ -128,7 +118,7 @@ def load_last_k_text_messages_ollama(chat_history_id, k):
 
 
 def load_messages(chat_history_id):
-    conn, cursor = get_db_connection_and_cursor()
+    _, cursor = get_db_connection_and_cursor()
 
     query = """
     SELECT message_id, sender_type, message_type, text_content,
@@ -152,3 +142,30 @@ def load_messages(chat_history_id):
                  'message_type': message_type, 'content': blob_content})
 
     return chat_history
+
+
+def save_image_message(chat_history_id, sender_type, image_bytes):
+    conn, cursor = get_db_connection_and_cursor()
+
+    cursor.execute("""
+                   INSERT INTO messages (chat_history_id, sender_type, \
+                   message_type, blob_content) VALUES (?, ?, ?, ?)
+                   """,
+                   (chat_history_id, sender_type,
+                    'image',
+                    sqlite3.Binary(image_bytes)))
+
+    conn.commit()
+
+
+def save_audio_message(chat_history_id, sender_type, audio_bytes):
+    conn, cursor = get_db_connection_and_cursor()
+
+    cursor.execute("""
+                   INSERT INTO messages (chat_history_id, sender_type, \
+                   message_type, blob_content) VALUES (?, ?, ?, ?)
+                   """,
+                   (chat_history_id, sender_type, 'audio',
+                    sqlite3.Binary(audio_bytes)))
+
+    conn.commit()

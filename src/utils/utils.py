@@ -1,7 +1,9 @@
 import aiohttp
 import asyncio
+import base64
 import requests
 import streamlit as st
+import time
 
 from datetime import datetime
 from pathlib import Path
@@ -16,8 +18,24 @@ def convert_ns_to_seconds(ns_value):
     return ns_value / 1_000_000_000 
 
 
+def convert_bytes_to_base64(image_bytes):
+    return base64.b64encode(image_bytes).decode("utf-8")
+
+
 def get_timestamp():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def timeit(func):
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        execution_time = end_time - start_time
+        print(f"Function '{func.__name__}' executed in \
+              {execution_time:.4f} seconds")
+        return result
+    return wrapper
 
 
 def list_ollama_models():

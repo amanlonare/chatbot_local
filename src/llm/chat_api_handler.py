@@ -2,8 +2,9 @@ import requests
 import streamlit as st
 
 from pathlib import Path
+from src.database.vectordb_handler import load_vectordb
 from src.utils import config_loader
-from src.utils.utils import convert_ns_to_seconds
+from src.utils.utils import convert_ns_to_seconds, convert_bytes_to_base64
 
 PROJECT_ROOT = Path(__file__).parent.parent
 
@@ -33,6 +34,13 @@ class OllamaChatAPIHandler:
         return json_response["message"]["content"]
 
     @classmethod
+    def image_chat(cls, user_input, chat_history, image):
+        chat_history.append(
+            {"role": "user", "content": user_input,
+             "images": [convert_bytes_to_base64(image)]})
+        return cls.api_call(chat_history)
+
+    @classmethod
     def print_times(cls, json_response):        
         total_duration_ns = json_response.get("total_duration", 0)
         load_duration_ns = json_response.get("load_duration", 0)
@@ -58,7 +66,7 @@ class ChatAPIHandler:
         pass
 
     @classmethod
-    def chat(cls, user_input, chat_history):
+    def chat(cls, user_input, chat_history, image=None):
         endpoint = st.session_state["endpoint_to_use"]
         print(f"Endpoint to use: {endpoint}")
         print(f"Model to use: {st.session_state['model_to_use']}")
@@ -66,6 +74,23 @@ class ChatAPIHandler:
             handler = OllamaChatAPIHandler
         else:
             raise ValueError(f"Unknown endpoint: {endpoint}")
+
+        if st.session_state.get("pdf_chat", False):
+            vector_db = load_vectordb()
+            retrieved_documents = vector_db.similarity_search(
+                user_input,
+                k=config["chat_config"]["number_of_retrieved_documents"]
+                )
+            context = "\n".join(
+                [item.page_content for item in retrieved_documents]
+                )
+            template = f"Answer the user question based on this context: \
+                {context}\nUser Question: {user_input}"
+            chat_history.append({"role": "user", "content": template})
+            return handler.api_call(chat_history)
+
+        if image:
+            return handler.image_chat(user_input, chat_history, image)
 
         chat_history.append({"role": "user", "content": user_input})
         return handler.api_call(chat_history)

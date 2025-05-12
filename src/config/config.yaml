@@ -11,3 +11,5 @@ chromadb:
 
 chat_config:
   chat_memory_length: 2
+
+whisper_model: "openai/whisper-small"
